@@ -1,6 +1,7 @@
 # Backend Application
 
 This is a backend application for the USOF application. To check the functionality of the backend, please follow these instructions.
+In case of unclear situations DM me in Telegram.
 
 ## Getting Started
 
@@ -37,6 +38,7 @@ To interact with and view the data in your database, you will need a database ma
 **Recommended Tools:**
 - pgAdmin
 
+You should create a schema with properties indicated in file `index.ts` and change the password of a DMS user to valid 
 Make sure your database is running, and use one of these tools to manage and query the database. You should be able to check the results of your backend requests directly in the database.
 
 ### 4. Run the Server

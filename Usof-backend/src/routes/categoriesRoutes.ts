@@ -48,9 +48,32 @@ const getAllCategoriesHandler: RequestHandler = async (req, res) => {
     }
 };
 
+const getCategoriesWithActivePostsHandler: RequestHandler = async (req, res) => {
+    try {
+        const categories = await CategoryService.getCategoriesForActivePosts();
+        res.status(200).json(categories);
+    } catch (error) {
+        console.error('Get categories with active posts error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+const getCategoriesForPostHandler: RequestHandler = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const categories = await CategoryService.getCategoriesForPost(Number(id));
+        res.status(200).json(categories);
+    } catch (error) {
+        console.error('Get categories for post error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+router.get('/with-active-posts', getCategoriesWithActivePostsHandler);
+router.get('/:id', getCategoriesForPostHandler);
 router.post('/', authenticateToken, isAdmin, createCategoryHandler);
 router.put('/:id', authenticateToken, isAdmin, updateCategoryHandler);
 router.delete('/:id', authenticateToken, isAdmin, deleteCategoryHandler);
-router.get('/', authenticateToken, isAdmin, getAllCategoriesHandler);
+router.get('/', authenticateToken, getAllCategoriesHandler);
 
 export default router;

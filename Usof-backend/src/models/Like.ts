@@ -21,11 +21,13 @@ export class Like extends Model {
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
+        onDelete: 'CASCADE',
     })
     authorId!: number;
 
-    @BelongsTo(() => User)
+    @BelongsTo(() => User, { onDelete: 'CASCADE' })
     author!: User;
+
 
     @Column({
         type: DataType.DATE,
@@ -37,20 +39,22 @@ export class Like extends Model {
     @Column({
         type: DataType.INTEGER,
         allowNull: true,
+        onDelete: 'CASCADE',
     })
     postId?: number;
 
-    @BelongsTo(() => Post)
+    @BelongsTo(() => Post, { onDelete: 'CASCADE'})
     post?: Post;
 
     @ForeignKey(() => Comment)
     @Column({
         type: DataType.INTEGER,
         allowNull: true,
+        onDelete: 'CASCADE'
     })
     commentId?: number;
 
-    @BelongsTo(() => Comment)
+    @BelongsTo(() => Comment, {onDelete: 'CASCADE'})
     comment?: Comment;
 
     @Column({

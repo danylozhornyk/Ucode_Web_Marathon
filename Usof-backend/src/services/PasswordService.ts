@@ -1,46 +1,91 @@
 import { User } from '../models/User';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import nodemailer, { Transporter } from 'nodemailer';
 import { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } from '../config';
-import { AuthService } from './AuthService';
 
-export class PasswordService {
-    private static transporter: Transporter;
-
-    static async init() {
-        this.transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: SMTP_USER,
-                pass: SMTP_PASS
-            }
-        });
-    }
-
-    static async changePassword(userId: number, newPassword: string, token: string) {
-        const user = await User.findByPk(userId);
-        if (!user) {
-            throw new Error('User not found');
-        }
-
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
-        await user.update({ password: hashedPassword });
-
-        await this.sendPasswordChangeEmail(user.email, user.fullName);
-
-        await AuthService.logout(token);
-    }
-
-    private static async sendPasswordChangeEmail(email: string, fullName: string) {
-        await this.transporter.sendMail({
-            from: 'your-email@example.com',
-            to: email,
-            subject: 'Password Changed',
-            text: `Dear ${fullName},\n\nYour password has been changed successfully.\n\nIf you did not request this change, please contact our support team immediately.\n\nBest regards,\nYour App Team`
-        });
-    }
+interface PasswordResetToken {
+    email: string;
+    token: string;
+    expiresAt: Date;
 }
 
-PasswordService.init();
+export const resetTokens = new Map<string, PasswordResetToken>();
+
+export class PasswordService {
+    private static transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: SMTP_USER,
+            pass: SMTP_PASS
+        }
+    });
+
+    static async generateResetToken(email: string): Promise<string> {
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 24);
+
+        resetTokens.set(token, {
+            email,
+            token,
+            expiresAt
+        });
+
+        return token;
+    }
+
+    static async sendPasswordResetEmail(email: string, resetToken: string) {
+        const resetLink = `http://localhost:5173/reset-password/${resetToken}`;
+
+        await this.transporter.sendMail({
+            from: `"USOF" <${SMTP_USER}>`,
+            to: email,
+            subject: 'Password Reset Request',
+            html: `
+                <p>Hello,</p>
+                <p>We've received a request to reset your password.</p>
+                <p>To reset your password, please click the link below:</p>
+                <a href="${resetLink}">${resetLink}</a>
+                <p>This password reset link will expire in 24 hours.</p>
+                <p>If you did not request a password reset, please disregard this email.</p>
+                <p>Thank you,</p>
+                <p>The USOF Team</p>
+
+            `
+        });
+    }
+
+    static async verifyResetToken(token: string): Promise<string | null> {
+        const resetData = resetTokens.get(token);
+
+        if (!resetData || resetData.expiresAt < new Date()) {
+            resetTokens.delete(token);
+            return null;
+        }
+
+        return resetData.email;
+    }
+
+    static async resetPassword(user: User, newPassword: string): Promise<boolean> {
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        return true;
+    }
+
+    static async changePassword(user: User, oldPassword: string, newPassword: string): Promise<boolean> {
+        const isValidPassword = await bcrypt.compare(oldPassword, user.password);
+        if (!isValidPassword) {
+            throw new Error('Invalid old password');
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        return true;
+    }
+}

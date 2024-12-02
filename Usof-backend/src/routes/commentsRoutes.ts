@@ -5,72 +5,99 @@ import { authenticateToken, isAdmin } from '../middlewares/auth';
 const router = Router();
 
 const createCommentHandler: RequestHandler = async (req, res) => {
-	try {
-		const postId = parseInt(req.params.postId);
-		const userId = req.user.userId;
-		const { content } = req.body;
+    try {
+        const postId = parseInt(req.params.postId);
+        const userId = req.user.userId;
+        const { content } = req.body;
 
-		const comment = await CommentService.createComment(postId, userId, content);
-		res.status(201).json(comment);
-	} catch (error) {
-		console.error('Create comment error:', error);
-		res.status(500).json({ error: (error as Error).message });
-	}
+        const comment = await CommentService.createComment(postId, userId, content);
+        res.status(201).json(comment);
+    } catch (error) {
+        console.error('Create comment error:', error);
+        res.status(500).json({ error: (error as Error).message });
+    }
+};
+
+const createReplyHandler: RequestHandler = async (req, res) => {
+    try {
+        const parentId = parseInt(req.params.commentId);
+        const userId = req.user.userId;
+        const { content } = req.body;
+
+        const reply = await CommentService.createReply(parentId, userId, content);
+        res.status(201).json(reply);
+    } catch (error) {
+        console.error('Create reply error:', error);
+        res.status(500).json({ error: (error as Error).message });
+    }
 };
 
 const getPostCommentsHandler: RequestHandler = async (req, res) => {
-	try {
-		const postId = parseInt(req.params.postId);
-		const comments = await CommentService.getPostComments(postId);
-		res.json(comments);
-	} catch (error) {
-		console.error('Get post comments error:', error);
-		res.status(500).json({ error: (error as Error).message });
-	}
+    try {
+        const postId = parseInt(req.params.postId);
+        const comments = await CommentService.getPostComments(postId);
+        res.json(comments);
+    } catch (error) {
+        console.error('Get post comments error:', error);
+        res.status(500).json({ error: (error as Error).message });
+    }
+};
+
+const getRepliesHandler: RequestHandler = async (req, res) => {
+    try {
+        const parentId = parseInt(req.params.commentId);
+        const replies = await CommentService.getReplies(parentId);
+        res.json(replies);
+    } catch (error) {
+        console.error('Get replies error:', error);
+        res.status(500).json({ error: (error as Error).message });
+    }
 };
 
 const deleteCommentHandler: RequestHandler = async (req, res) => {
-	try {
-		const commentId = parseInt(req.params.commentId);
-		const userId = req.user.userId;
-		const userRole = req.user.role;
+    try {
+        const commentId = parseInt(req.params.commentId);
+        const userId = req.user.userId;
+        const userRole = req.user.role;
 
-		await CommentService.deleteComment(commentId, userId, userRole);
-		res.status(204).send();
-	} catch (error) {
-		console.error('Delete comment error:', error);
-		res.status(500).json({ error: (error as Error).message });
-	}
+        await CommentService.deleteComment(commentId, userId, userRole);
+        res.status(204).send();
+    } catch (error) {
+        console.error('Delete comment error:', error);
+        res.status(500).json({ error: (error as Error).message });
+    }
 };
 
 const updateCommentHandler: RequestHandler = async (req, res) => {
-	try {
-		const commentId = parseInt(req.params.commentId);
-		const userId = req.user.userId;
-		const userRole = req.user.role;
-		const { content } = req.body;
+    try {
+        const commentId = parseInt(req.params.commentId);
+        const userId = req.user.userId;
+        const userRole = req.user.role;
+        const { content } = req.body;
 
-		const comment = await CommentService.updateComment(commentId, userId, userRole, content);
-		res.json(comment);
-	} catch (error) {
-		console.error('Update comment error:', error);
-		res.status(500).json({ error: (error as Error).message });
-	}
+        const comment = await CommentService.updateComment(commentId, userId, userRole, content);
+        res.json(comment);
+    } catch (error) {
+        console.error('Update comment error:', error);
+        res.status(500).json({ error: (error as Error).message });
+    }
 };
 
 const getAllCommentsHandler: RequestHandler = async (req, res) => {
-	try {
-		const userRole = req.user.role;
-		const comments = await CommentService.getAllComments(userRole);
-		res.json(comments);
-	} catch (error) {
-		console.error('Get all comments error:', error);
-		res.status(500).json({ error: (error as Error).message });
-	}
+    try {
+        const userRole = req.user.role;
+        const comments = await CommentService.getAllComments(userRole);
+        res.json(comments);
+    } catch (error) {
+        console.error('Get all comments error:', error);
+        res.status(500).json({ error: (error as Error).message });
+    }
 };
 
 router.post('/:postId', authenticateToken, createCommentHandler);
+router.post('/:commentId/replies', authenticateToken, createReplyHandler);
 router.get('/:postId', getPostCommentsHandler);
+router.get('/:commentId/replies', getRepliesHandler);
 router.delete('/:commentId', authenticateToken, deleteCommentHandler);
 router.put('/:commentId', authenticateToken, updateCommentHandler);
 router.get('/', authenticateToken, isAdmin, getAllCommentsHandler);

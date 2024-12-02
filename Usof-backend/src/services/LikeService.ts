@@ -40,8 +40,13 @@ export const LikeService = {
 				: { commentId, authorId: userId },
 		});
 
+		if (existingLike && existingLike.type === (isLike ? LikeType.LIKE : LikeType.DISLIKE)) {
+			await existingLike.destroy();
+			return; 
+		}
+
 		if (existingLike) {
-			throw new Error('You have already liked/disliked this post/comment');
+			await existingLike.destroy();
 		}
 
 		const like = await Like.create({

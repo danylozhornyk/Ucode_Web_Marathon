@@ -1,0 +1,5 @@
+export { Header } from './header/header'
+export { Footer } from './footer/footer'
+export { Profile } from './auth/profile'
+export { LoginPage } from './auth/loginPage'
+export {Posts} from './posts/posts'

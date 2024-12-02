@@ -22,11 +22,13 @@ export class Post extends Model {
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
+        onDelete: 'CASCADE',
     })
     authorId!: number;
 
-    @BelongsTo(() => User)
+    @BelongsTo(() => User, { onDelete: 'CASCADE' })
     author!: User;
+
 
     @Column({
         type: DataType.STRING,
@@ -53,7 +55,7 @@ export class Post extends Model {
     content!: string;
 
     @Column({
-        type: DataType.STRING,
+        type: DataType.TEXT,
         allowNull: true,
     })
     image?: string;
@@ -69,7 +71,7 @@ export class Post extends Model {
 
     @Column({
         type: DataType.INTEGER,
-        defaultValue: 0, //This value is changes via trigger when Likes table is updated
+        defaultValue: 0,
     })
     rating!: number;
 }
@@ -77,12 +79,26 @@ export class Post extends Model {
 @Table
 export class PostCategory extends Model {
     @ForeignKey(() => Post)
-    @Column
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        onDelete: 'CASCADE'
+    })
     postId!: number;
 
+    @BelongsTo(() => Post, { onDelete: 'CASCADE' })
+    post!: Post;
+
     @ForeignKey(() => Category)
-    @Column
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+        onDelete: 'CASCADE'
+    })
     categoryId!: number;
+
+    @BelongsTo(() => Category, { onDelete: 'CASCADE' })
+    category!: Category;
 }
 
 @Table
@@ -91,13 +107,22 @@ export class FavoritePost extends Model {
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
+        onDelete: 'CASCADE',
     })
     userId!: number;
+    
+    @BelongsTo(() => User, { onDelete: 'CASCADE' })
+    user!: User;
+    
 
     @ForeignKey(() => Post)
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
+        onDelete: 'CASCADE',
     })
     postId!: number;
+
+    @BelongsTo(() => Post, { onDelete: 'CASCADE' })
+    post!: Post;
 }

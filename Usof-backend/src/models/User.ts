@@ -44,14 +44,14 @@ export class User extends Model {
     email!: string;
 
     @Column({
-        type: DataType.STRING,
+        type: DataType.TEXT,
         allowNull: true,
     })
     profilePicture?: string;
 
     @Column({
         type: DataType.INTEGER,
-        defaultValue: 0, // This Value changes via trigger when Posts table is updated
+        defaultValue: 0, 
     })
     rating!: number;
 

@@ -16,10 +16,11 @@ export class Comment extends Model {
     @Column({
         type: DataType.INTEGER,
         allowNull: false,
+        onDelete: 'CASCADE',
     })
     authorId!: number;
 
-    @BelongsTo(() => User)
+    @BelongsTo(() => User, { onDelete: 'CASCADE' })
     author!: User;
 
     @Column({
@@ -46,4 +47,24 @@ export class Comment extends Model {
 
     @HasMany(() => Like)
     likes!: Like[];
+
+    @HasMany(() => CommentReply, 'parentId')
+    replies!: CommentReply[];
+}
+
+@Table
+export class CommentReply extends Model {
+    @ForeignKey(() => Comment)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+    })
+    parentId!: number;
+
+    @ForeignKey(() => Comment)
+    @Column({
+        type: DataType.INTEGER,
+        allowNull: false,
+    })
+    commentId!: number;
 }
